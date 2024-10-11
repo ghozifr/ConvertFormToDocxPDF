@@ -154,13 +154,35 @@
                 <label for="NilaiKontrak">Nilai Kontrak:</label>
                 <input type="number" id="NilaiKontrak" class="form-control" name="NilaiKontrak" required>
 
-                <!-- Display the formatted currency value below the input -->
+                <!-- Display the formatted currency value -->
                 <p>Formatted Nilai Kontrak: <span id="formattedNilaiKontrak">Rp. 0,-</span></p>
+
+                <!-- Display the number in Indonesian words -->
+                <p>Terbilang: <span id="terbilangNilaiKontrak">Nol Rupiah</span></p>
             </div>
-            <div class="form-group">
-                <label for="WaktuPenyelesaianPekerjaan">Waktu Penyelesaian Pekerjaan:</label>
-                <input type="text" class="form-control" name="WaktuPenyelesaianPekerjaan" required>
-            </div>
+
+            <!-- PPN Checkbox Section -->
+<div class="form-group">
+    <label>Termasuk PPN:</label><br>
+    <input type="radio" id="ppn_yes" name="TermasukPPN" value="yes" required>
+    <label for="ppn_yes">Yes</label><br>
+
+    <input type="radio" id="ppn_no" name="TermasukPPN" value="no">
+    <label for="ppn_no">No</label>
+</div>
+
+<div class="form-group">
+    <label for="WaktuMulai">Waktu Penyelesaian Pekerjaan:</label><br>
+
+    <!-- Start Date Input -->
+    <input type="date" id="WaktuMulai" class="form-control" name="WaktuMulai" required>
+
+    <!-- Text in between -->
+    <span>Sampai</span>
+
+    <!-- End Date Input -->
+    <input type="date" id="WaktuSelesai" class="form-control" name="WaktuSelesai" required>
+</div>
 
             <!-- Mitra Section -->
             <h3>Mitra</h3>
@@ -225,10 +247,16 @@
     <script>
         const nilaiKontrakInput = document.getElementById('NilaiKontrak');
         const formattedDisplay = document.getElementById('formattedNilaiKontrak');
+        const terbilangDisplay = document.getElementById('terbilangNilaiKontrak');
 
         nilaiKontrakInput.addEventListener('input', function(e) {
             let value = this.value.replace(/\D/g, ''); // Only allow numbers
+
+            // Update formatted currency display
             formattedDisplay.textContent = formatRupiah(value, 'Rp. ');
+
+            // Update the Indonesian words display
+            terbilangDisplay.textContent = terbilang(value) + ' Rupiah';
         });
 
         // Function to format the number into Rupiah format
@@ -247,6 +275,39 @@
 
             rupiah = split[1] != undefined ? rupiah + ',' + split[1] : rupiah;
             return prefix == undefined ? rupiah : (rupiah ? 'Rp. ' + rupiah + ',-' : '');
+        }
+
+        // Function to convert numbers into Indonesian words
+        function terbilang(number) {
+            const angka = ["", "Satu", "Dua", "Tiga", "Empat", "Lima", "Enam", "Tujuh", "Delapan", "Sembilan"];
+            const level = ["", "Ribu", "Juta", "Milyar", "Triliun"];
+
+            function toWords(n) {
+                if (n == 0) return '';
+                let str = '', num = n.toString();
+                let len = num.length;
+                let units = [1000000000, 1000000, 1000, 1];
+                let unitLevel = [3, 2, 1, 0];
+
+                units.forEach((unit, i) => {
+                    if (Math.floor(n / unit) > 0) {
+                        str += `${subWords(Math.floor(n / unit))} ${level[unitLevel[i]]} `;
+                        n %= unit;
+                    }
+                });
+                return str.trim();
+            }
+
+            function subWords(n) {
+                if (n < 10) return angka[n];
+                if (n < 20) return angka[n - 10] + ' Belas';
+                if (n < 100) return angka[Math.floor(n / 10)] + ' Puluh ' + angka[n % 10];
+                if (n < 200) return 'Seratus ' + subWords(n - 100);
+                if (n < 1000) return angka[Math.floor(n / 100)] + ' Ratus ' + subWords(n % 100);
+                return '';
+            }
+
+            return toWords(parseInt(number));
         }
     </script>
 

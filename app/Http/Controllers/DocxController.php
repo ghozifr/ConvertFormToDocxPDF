@@ -27,7 +27,7 @@ class DocxController extends Controller
             'NoKontrak' => 'required|string',
             'NamaProjek' => 'required|string',
             'NilaiKontrak' => 'required|int',
-            'WaktuPenyelesaianPekerjaan' => 'required|string',
+            //'WaktuPenyelesaianPekerjaan' => 'required|string',
             'DetailKesimpulan' => 'required|string',
             'TandaTanganID' => 'required|string',
             'RencanaPembayaran' => 'required|string',
@@ -87,6 +87,18 @@ Kesimpulan:
         $table = $section->addTable();
         // Format Nilai Kontrak before adding it to the DOCX
     $formattedNilaiKontrak = $this->formatRupiah($request->NilaiKontrak);
+    // Convert Nilai Kontrak to Indonesian words (terbilang)
+    $terbilangNilaiKontrak = $this->terbilang($request->NilaiKontrak) . ' Rupiah';
+    // Format the Waktu Penyelesaian Pekerjaan
+    $formattedWaktu = $this->formatDateRange($request->WaktuMulai, $request->WaktuSelesai);
+
+    // Validate the input
+    $request->validate([
+        'NilaiKontrak' => 'required|numeric',
+        'TermasukPPN' => 'required|in:yes,no',
+    ]);
+    // Determine if PPN is included or not
+$ppnText = $request->TermasukPPN === 'yes' ? 'sudah termasuk PPN' : 'belum termasuk PPN';
 
 
         //REVIEW TREASURY & TAX
@@ -100,13 +112,21 @@ $table->addRow();
 $table->addCell(4000)->addText("Proyek");
 $table->addCell(8000)->addText(": $request->NamaProjek");
 
+// Add formatted Rupiah value and PPN status
 $table->addRow();
-    $table->addCell(4000)->addText("Nilai Kontrak");
-    $table->addCell(8000)->addText(": " . $formattedNilaiKontrak);
+$table->addCell(4000)->addText("Nilai Kontrak");
+$table->addCell(8000)->addText(": " . $formattedNilaiKontrak . " ,- (" . $ppnText . ")");
 
+// Add Terbilang (Indonesian words for the amount)
 $table->addRow();
-$table->addCell(4000)->addText("Waktu Penyelesaian Pekerjaan");
-$table->addCell(8000)->addText(": $request->WaktuPenyelesaianPekerjaan");
+$table->addCell(4000)->addText("Terbilang");
+$table->addCell(8000)->addText(": " . $terbilangNilaiKontrak);
+
+
+ // Add Waktu Penyelesaian Pekerjaan
+    $table->addRow();
+    $table->addCell(4000)->addText("Waktu Penyelesaian Pekerjaan");
+    $table->addCell(8000)->addText(": " . $formattedWaktu);
 
 $table->addRow();
 
@@ -195,6 +215,57 @@ $table->addCell(8000)->addText(": $request->TandaTanganID");
     $number = preg_replace("/[^0-9]/", "", $number); // Remove non-numeric characters
     return 'Rp. ' . number_format($number, 0, ',', '.') . ',-';
 }
+
+// Function to format the date range
+public function formatDateRange($startDate, $endDate)
+{
+    // Format both dates to "ddmmyy" format
+    $startFormatted = date('dmy', strtotime($startDate));
+    $endFormatted = date('dmy', strtotime($endDate));
+
+    // Return the result in the desired format "start sd end"
+    return $startFormatted . ' sd ' . $endFormatted;
+}
+
+// Function to convert numbers to Indonesian words
+public function terbilang($number)
+{
+    // Define the number words and levels arrays
+    $angka = ["", "Satu", "Dua", "Tiga", "Empat", "Lima", "Enam", "Tujuh", "Delapan", "Sembilan"];
+    $level = ["", "Ribu", "Juta", "Milyar", "Triliun"];
+
+    // Main function to convert number to words
+    function toWords($n, $angka, $level) {
+        if ($n == 0) return '';
+        $str = '';
+        $units = [1000000000, 1000000, 1000, 1];
+        $unitLevel = [3, 2, 1, 0];
+
+        // Process each unit (e.g., Billion, Million, Thousand, etc.)
+        foreach ($units as $i => $unit) {
+            if (floor($n / $unit) > 0) {
+                $str .= subWords(floor($n / $unit), $angka) . ' ' . $level[$unitLevel[$i]] . ' ';
+                $n %= $unit;
+            }
+        }
+
+        return trim($str);
+    }
+
+    // Sub-function to handle smaller number words
+    function subWords($n, $angka) {
+        if ($n < 10) return $angka[$n];
+        if ($n < 20) return $angka[$n - 10] . ' Belas';
+        if ($n < 100) return $angka[floor($n / 10)] . ' Puluh ' . $angka[$n % 10];
+        if ($n < 200) return 'Seratus ' . subWords($n - 100, $angka);
+        if ($n < 1000) return $angka[floor($n / 100)] . ' Ratus ' . subWords($n % 100, $angka);
+        return '';
+    }
+
+    // Call toWords() and pass both arrays (angka and level)
+    return toWords($number, $angka, $level);
+}
+
 
     // Preview a specific DOCX file from the database
     public function previewDocx($id)
