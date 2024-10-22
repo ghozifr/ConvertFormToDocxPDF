@@ -27,7 +27,7 @@ Route::get('/form', function () {
 
 
 // Convert form data to DOCX
-Route::post('/convert', [DocxController::class, 'convertToDocx'])->middleware(['auth'])->name('form.convert');
+Route::post('/result', [DocxController::class, 'showResult'])->middleware(['auth'])->name('form.convert');
 
 // Default Jetstream auth routes for dashboard (optional)
 Route::middleware([

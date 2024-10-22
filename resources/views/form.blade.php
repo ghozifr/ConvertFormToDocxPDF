@@ -148,7 +148,7 @@
             </div>
             <div class="form-group">
                 <label for="NamaProjek">Nama Proyek:</label>
-                <input type="text" class="form-control" name="NamaProjek" required>
+                <input type="text" class="form-control" name="namaProjek" required>
             </div>
             <div class="form-group">
                 <label for="NilaiKontrak">Nilai Kontrak:</label>
@@ -188,46 +188,47 @@
             <h3>Mitra</h3>
             <div class="form-group">
                 <label for="NamaMitra">Nama Mitra:</label>
-                <input type="text" class="form-control" name="NamaMitra" required>
+                <input type="text" class="form-control" name="namaMitra" required>
             </div>
             <div class="form-group">
                 <label for="CaraBayar">Cara Bayar:</label>
-                <input type="text" class="form-control" name="CaraBayar" required>
+                <input type="text" class="form-control" name="caraBayar" required>
             </div>
             <div class="form-group">
                 <label for="AmandemenPertama">Amandemen Pertama:</label>
-                <input type="text" class="form-control" name="AmandemenPertama" required>
+                <textarea rows="5" class="form-control" name="amandemenPertama" required></textarea>
             </div>
 
             <!-- Pembayaran Section -->
             <h3>Pembayaran</h3>
             <div class="form-group">
                 <label for="RencanaPembayaran">Rencana Pembayaran:</label>
-                <input type="text" class="form-control" name="RencanaPembayaran" required>
+                <textarea rows="5" class="form-control" name="RencanaPembayaran" required></textarea>
             </div>
 
             <!-- KelengkapanDokumen Section -->
             <h3>Kelengkapan Dokumen</h3>
             <div class="form-group">
                 <label for="DetailKelengkapan">Detail Kelengkapan:</label>
-                <textarea class="form-control" name="DetailKelengkapan" required></textarea>
+                <textarea rows="5" class="form-control" name="detailKelengkapan" required></textarea>
             </div>
 
             <!-- Kesimpulan Section -->
             <h3>Kesimpulan</h3>
             <div class="form-group">
                 <label for="DetailKesimpulan">Detail Kesimpulan:</label>
-                <textarea class="form-control" name="DetailKesimpulan" required></textarea>
+                <textarea rows="5" class="form-control" name="detailKesimpulan" required></textarea>
             </div>
 
             <!-- Tanda Tangan Section -->
-            <h3>Tanda Tangan</h3>
+            {{-- <h3>Tanda Tangan</h3>
             <div class="form-group">
                 <label for="TandaTanganID">Tanda Tangan ID:</label>
                 <input type="text" class="form-control" name="TandaTanganID" required>
-            </div>
+            </div> --}}
 
-            <button type="submit" class="btn btn-primary btn-block">Convert to DOCX</button>
+            <button type="submit" class="btn btn-primary">Convert & Display</button>
+
         </form>
 
         <div class="text-right mt-4">
@@ -308,6 +309,22 @@
             }
 
             return toWords(parseInt(number));
+        }
+        function printPage() {
+        window.print(); // This triggers the browser's print dialog, like Ctrl + P
+    }
+    function redirectToResult() {
+            // Get values from the form
+            const noKontrak = document.getElementById('NoKontrak').value;
+            const namaProjek = document.getElementById('NamaProjek').value;
+            const nilaiKontrak = document.getElementById('NilaiKontrak').value;
+            const termasukPPN = document.querySelector('input[name="TermasukPPN"]:checked').value;
+
+            // Create a URL and pass parameters via query string
+            const resultPageUrl = `result?noKontrak=${encodeURIComponent(noKontrak)}&namaProjek=${encodeURIComponent(namaProjek)}&nilaiKontrak=${encodeURIComponent(nilaiKontrak)}&termasukPPN=${encodeURIComponent(termasukPPN)}`;
+
+            // Redirect to the result page
+            window.location.href = resultPageUrl;
         }
     </script>
 
